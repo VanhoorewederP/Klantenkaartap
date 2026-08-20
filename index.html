@@ -73,6 +73,11 @@
       <span class="text-xl">⭐</span>
       <span class="text-xs font-semibold">Vaakst Gebruikt</span>
     </button>
+    <!-- Update Knop -->
+    <button onclick="checkForAppUpdate()" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 py-1 transition">
+      <span class="text-xl" id="updateIcon">🔄</span>
+      <span class="text-xs font-semibold">Update</span>
+    </button>
   </nav>
 
   <!-- Modal: Toon Code + Bewerken & Verwijderen -->
@@ -800,6 +805,63 @@
       screen.orientation.lock('portrait-primary').catch(() => {
       // Negeer fout indien toestel/browser het niet ondersteunt
       });
+    }
+
+    let swRegistration = null;
+
+    // Registreer en bewaar Service Worker registratie
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').then((reg) => {
+        swRegistration = reg;
+
+        // Luister of er op de achtergrond een nieuwe versie klaarstaat
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              showUpdateBanner(newWorker);
+            }
+          });
+        });
+      });
+
+      // Herlaad zodra de nieuwe worker actief is
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload();
+      });
+    }
+
+    // Handmatige update check via het knopje
+    async function checkForAppUpdate() {
+      const icon = document.getElementById('updateIcon');
+      icon.classList.add('animate-spin');
+
+      if (!swRegistration) {
+        setTimeout(() => {
+          icon.classList.remove('animate-spin');
+          window.location.reload(true);
+        }, 600);
+        return;
+      }
+
+      try {
+        await swRegistration.update();
+        setTimeout(() => {
+          icon.classList.remove('animate-spin');
+          if (!swRegistration.waiting && !swRegistration.installing) {
+            // Geen update gevonden
+            alert("Je gebruikt al de nieuwste versie!");
+          }
+        }, 800);
+      } catch (err) {
+        icon.classList.remove('animate-spin');
+        window.location.reload();
+      }
+    }
+
+    // Activeer direct de nieuwe update
+    function showUpdateBanner(worker) {
+      worker.postMessage({ action: 'skipWaiting' });
     }
 
     renderCards();
