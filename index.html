@@ -234,6 +234,27 @@
     </div>
   </div>
 
+  <!-- Aangepaste Alert / Confirm Dialog Modal -->
+  <div id="dialogModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-xs rounded-3xl p-6 flex flex-col items-center gap-4 text-center shadow-2xl animate-fade-in">
+      <div id="dialogIcon" class="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center text-xl">
+        🗑️
+      </div>
+      <div class="flex flex-col gap-1">
+        <h3 id="dialogTitle" class="text-lg font-bold text-white">Kaart Verwijderen</h3>
+        <p id="dialogMessage" class="text-xs text-slate-400">Weet je het zeker?</p>
+      </div>
+      <div class="flex gap-2 w-full pt-1">
+        <button id="dialogCancelBtn" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl text-xs font-semibold transition active:scale-95">
+          Annuleren
+        </button>
+        <button id="dialogConfirmBtn" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-xl text-xs font-bold transition shadow active:scale-95">
+          Verwijderen
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js'); }
     
@@ -395,11 +416,50 @@
       document.getElementById('viewModal').classList.remove('hidden');
     }
 
-    // --- Verwijderen en Bewerken vanuit View Modal ---
-    function deleteCurrentCard() {
+    // Aangepaste Promise-based Confirm Dialoog
+    function showConfirmDialog({ title, message, icon = '🗑️', confirmText = 'Verwijderen', confirmColor = 'bg-red-600' }) {
+      return new Promise((resolve) => {
+        const modal = document.getElementById('dialogModal');
+        const titleEl = document.getElementById('dialogTitle');
+        const msgEl = document.getElementById('dialogMessage');
+        const iconEl = document.getElementById('dialogIcon');
+        const confirmBtn = document.getElementById('dialogConfirmBtn');
+        const cancelBtn = document.getElementById('dialogCancelBtn');
+
+        titleEl.innerText = title;
+        msgEl.innerText = message;
+        iconEl.innerText = icon;
+        confirmBtn.innerText = confirmText;
+        confirmBtn.className = `flex-1 ${confirmColor} hover:brightness-110 text-white py-2.5 rounded-xl text-xs font-bold transition shadow active:scale-95`;
+
+        modal.classList.remove('hidden');
+
+        confirmBtn.onclick = () => {
+          modal.classList.add('hidden');
+          resolve(true);
+        };
+
+        cancelBtn.onclick = () => {
+          modal.classList.add('hidden');
+          resolve(false);
+        };
+      });
+    }
+
+    // Vervang de deleteCurrentCard functie door deze versie:
+    async function deleteCurrentCard() {
       if (activeViewingIndex === null) return;
       const card = cards[activeViewingIndex];
-      if (confirm(`Weet je zeker dat je "${card.name}" wilt verwijderen?`)) {
+
+      const confirmed = await showConfirmDialog({
+        title: 'Kaart Verwijderen',
+        message: `Weet je zeker dat je "${card.name}" wilt verwijderen?`,
+        icon: '🗑️',
+        confirmText: 'Verwijder',
+        confirmColor: 'bg-red-600'
+      });
+
+      if (confirmed) {
         cards.splice(activeViewingIndex, 1);
         localStorage.setItem('cards', JSON.stringify(cards));
         closeModal('viewModal');
