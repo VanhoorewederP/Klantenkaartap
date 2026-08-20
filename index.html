@@ -719,6 +719,13 @@
       if (e.target === e.currentTarget) closeModal(e.currentTarget.id);
     }
 
+    // Forceer portrait lock zodra de app geopend wordt (werkt op Android PWA)
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('portrait-primary').catch(() => {
+      // Negeer fout indien toestel/browser het niet ondersteunt
+      });
+    }
+
     renderCards();
   </script>
 </body>
