@@ -230,29 +230,37 @@
     }
 
     let isProcessingScan = false;
+    let isCameraBusy = false; // Voorkomt overlappende start/stop acties
 
     async function toggleScanner() {
+      if (isCameraBusy) return;
+
       const container = document.getElementById('scanner-container');
       if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
 
-      const state = html5QrCode.getState();
-      if (state === 1 || state === 2) {
-        isProcessingScan = false; // Reset lock bij openen
+      // State 2 = SCANNING in html5-qrcode
+      if (html5QrCode.isScanning) {
+        await forceStopScanner();
+      } else {
+        isCameraBusy = true;
+        isProcessingScan = false;
         container.classList.remove('hidden');
+        
+        // UI aanpassen naar 'Stop'
         document.getElementById('scanBtnText').innerText = "Stop";
         document.getElementById('scanBtnIcon').innerText = "⏹";
-        document.getElementById('scanBtn').classList.replace('bg-slate-800', 'bg-red-600');
+        const btn = document.getElementById('scanBtn');
+        btn.classList.remove('bg-slate-800');
+        btn.classList.add('bg-red-600');
 
         try {
           await html5QrCode.start(
             { facingMode: "environment" },
-            { fps: 15, qrbox: { width: 250, height: 150 } },
+            { fps: 10, qrbox: { width: 250, height: 150 } },
             (decodedText, decodedResult) => {
-              // Voorkom dat opeenvolgende frames herhaaldelijk afvuren
               if (isProcessingScan) return;
               isProcessingScan = true;
 
-              // 1x kort trillen en eventuele lopende vibratie direct stoppen
               if ('vibrate' in navigator) {
                 navigator.vibrate(0);
                 navigator.vibrate(80);
@@ -261,44 +269,53 @@
               document.getElementById('cardNumber').value = decodedText;
               const format = decodedResult?.result?.format?.formatName || '';
               setType(detectCodeType(decodedText, format));
-              
+
               forceStopScanner();
             },
-            () => {}
+            () => {} // Mute scan frame errors
           );
         } catch (err) {
-          isProcessingScan = false;
+          console.warn("Camera start fout:", err);
           container.classList.add('hidden');
           resetScanBtnUI();
-          alert("Kan camera niet starten. Controleer je toestemmingen in de browser.");
+          alert("Kan camera niet starten. Controleer of je browser toegang heeft tot de camera.");
+        } finally {
+          isCameraBusy = false;
         }
-      } else if (state === 3) {
-        forceStopScanner();
       }
     }
 
     async function forceStopScanner() {
+      if ('vibrate' in navigator) navigator.vibrate(0);
       isProcessingScan = true;
-      if ('vibrate' in navigator) navigator.vibrate(0); // Veiligheidshalve alle vibraties afbreken
 
-      if (html5QrCode && html5QrCode.getState() === 3) {
-        try { 
-          await html5QrCode.stop(); 
+      if (html5QrCode) {
+        try {
+          // Controleer of de scanner echt actief aan het streamen is
+          if (html5QrCode.isScanning) {
+            await html5QrCode.stop();
+          }
+          // Maak de video canvas elementen netjes leeg zonder fouten
+          html5QrCode.clear();
         } catch (err) {
-          console.warn("Scanner stop fout genegeerd:", err);
+          console.warn("Scanner kon niet gestopt worden (al gestopt of afgesloten):", err);
         }
       }
+
       document.getElementById('scanner-container').classList.add('hidden');
       resetScanBtnUI();
       isProcessingScan = false;
+      isCameraBusy = false;
     }
 
     function resetScanBtnUI() {
       document.getElementById('scanBtnText').innerText = "Camera";
       document.getElementById('scanBtnIcon').innerText = "📷";
       const btn = document.getElementById('scanBtn');
-      btn.classList.remove('bg-red-600');
-      btn.classList.add('bg-slate-800');
+      if (btn) {
+        btn.classList.remove('bg-red-600');
+        btn.classList.add('bg-slate-800');
+      }
     }
 
     function triggerFileImport() {
