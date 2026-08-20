@@ -229,12 +229,15 @@
       return 'BARCODE';
     }
 
+    let isProcessingScan = false;
+
     async function toggleScanner() {
       const container = document.getElementById('scanner-container');
       if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
 
       const state = html5QrCode.getState();
       if (state === 1 || state === 2) {
+        isProcessingScan = false; // Reset lock bij openen
         container.classList.remove('hidden');
         document.getElementById('scanBtnText').innerText = "Stop";
         document.getElementById('scanBtnIcon').innerText = "⏹";
@@ -245,15 +248,26 @@
             { facingMode: "environment" },
             { fps: 15, qrbox: { width: 250, height: 150 } },
             (decodedText, decodedResult) => {
+              // Voorkom dat opeenvolgende frames herhaaldelijk afvuren
+              if (isProcessingScan) return;
+              isProcessingScan = true;
+
+              // 1x kort trillen en eventuele lopende vibratie direct stoppen
+              if ('vibrate' in navigator) {
+                navigator.vibrate(0);
+                navigator.vibrate(80);
+              }
+
               document.getElementById('cardNumber').value = decodedText;
               const format = decodedResult?.result?.format?.formatName || '';
               setType(detectCodeType(decodedText, format));
-              navigator.vibrate?.(80);
+              
               forceStopScanner();
             },
             () => {}
           );
         } catch (err) {
+          isProcessingScan = false;
           container.classList.add('hidden');
           resetScanBtnUI();
           alert("Kan camera niet starten. Controleer je toestemmingen in de browser.");
@@ -264,11 +278,19 @@
     }
 
     async function forceStopScanner() {
+      isProcessingScan = true;
+      if ('vibrate' in navigator) navigator.vibrate(0); // Veiligheidshalve alle vibraties afbreken
+
       if (html5QrCode && html5QrCode.getState() === 3) {
-        try { await html5QrCode.stop(); } catch (err) {}
+        try { 
+          await html5QrCode.stop(); 
+        } catch (err) {
+          console.warn("Scanner stop fout genegeerd:", err);
+        }
       }
       document.getElementById('scanner-container').classList.add('hidden');
       resetScanBtnUI();
+      isProcessingScan = false;
     }
 
     function resetScanBtnUI() {
