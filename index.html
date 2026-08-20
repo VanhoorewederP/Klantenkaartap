@@ -56,6 +56,16 @@
         <span>🔤</span> <span id="sortLabel">A-Z</span>
       </button>
     </div>
+
+    <div class="flex gap-2 px-4 py-2 bg-slate-900 border-b border-slate-800">
+      <button onclick="exportBackup()" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition active:scale-95">
+        <span>💾</span> Backup
+      </button>
+      <button onclick="document.getElementById('importFileInput').click()" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition active:scale-95">
+        <span>📥</span> Herstel
+      </button>
+      <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="importBackup(this)">
+    </div>
   </header>
 
   <!-- Kaartenlijst: 2 kolommen naast elkaar -->
@@ -913,6 +923,82 @@
     // Activeer direct de nieuwe update
     function showUpdateBanner(worker) {
       worker.postMessage({ action: 'skipWaiting' });
+    }
+
+    // 1. Exporteer naar bestand / Deelmenu (Google Drive, iCloud, etc.)
+    async function exportBackup() {
+      if (cards.length === 0) {
+        showAppAlert("Er zijn nog geen kaarten om een backup van te maken.", "Geen Kaarten", "ℹ️");
+        return;
+      }
+
+      const backupData = JSON.stringify(cards, null, 2);
+      const fileName = `klantenkaarten_backup_${new Date().toISOString().slice(0, 10)}.json`;
+      const file = new File([backupData], fileName, { type: 'application/json' });
+
+      // Gebruik native deelmenu op mobiel indien beschikbaar
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: 'Mijn Klantenkaarten Backup',
+            text: 'Backup van al mijn klantenkaarten.'
+          });
+          return;
+        } catch (err) {
+          if (err.name === 'AbortError') return; // Gebruiker annuleerde het delen
+        }
+      }
+
+      // Fallback: direct downloaden als bestand
+      const blob = new Blob([backupData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+      showAppAlert("Backup-bestand is gedownload. Sla dit op in Google Drive of iCloud.", "Backup Gelukt", "✅");
+    }
+
+    // 2. Importeer en herstel backup
+    function importBackup(input) {
+      if (!input.files || input.files.length === 0) return;
+      const file = input.files[0];
+      const reader = new FileReader();
+
+      reader.onload = async function(e) {
+        try {
+          const importedCards = JSON.parse(e.target.result);
+          if (!Array.isArray(importedCards)) throw new Error("Ongeldig formaat");
+
+          const confirmed = await showAppConfirm(
+            `Wil je ${importedCards.length} kaarten toevoegen/samenvoegen met je huidige collectie?`,
+            "Backup Herstellen",
+            "📥",
+            "Herstel Kaarten",
+            "bg-blue-600"
+          );
+
+          if (confirmed) {
+            // Voorkom duplicaten bij samenvoegen
+            importedCards.forEach(newCard => {
+              const exists = cards.some(c => c.name.toLowerCase() === newCard.name.toLowerCase() || c.code === newCard.code);
+              if (!exists) cards.push(newCard);
+            });
+
+            localStorage.setItem('cards', JSON.stringify(cards));
+            renderCards();
+            showAppAlert("Al je kaarten zijn succesvol hersteld!", "Succes", "🎉");
+          }
+        } catch (err) {
+          showAppAlert("Het geselecteerde bestand is geen geldige backup.", "Fout bij Inladen", "❌");
+        } finally {
+          input.value = '';
+        }
+      };
+
+      reader.readAsText(file);
     }
 
     renderCards();
