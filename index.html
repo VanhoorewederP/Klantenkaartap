@@ -17,9 +17,9 @@
     input[type="text"] { font-size: 16px; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-full flex flex-col font-sans select-none antialiased pb-24">
+<body class="bg-slate-950 text-slate-100 min-h-full flex flex-col font-sans select-none antialiased pb-28">
 
-  <!-- Top Bar -->
+  <!-- Header -->
   <header class="p-4 bg-slate-900/90 backdrop-blur shadow-md sticky top-0 z-20 border-b border-slate-800 flex flex-col gap-3">
     <div class="flex justify-between items-center">
       <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
@@ -34,7 +34,7 @@
     <div class="flex gap-2">
       <div class="relative flex-1">
         <span class="absolute inset-y-0 left-3 flex items-center text-slate-400 pointer-events-none">🔍</span>
-        <input id="searchInput" oninput="renderCards()" type="text" placeholder="Zoek kaart of code..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-blue-500 text-white placeholder-slate-500">
+        <input id="searchInput" oninput="renderCards()" type="text" placeholder="Zoek kaart..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-blue-500 text-white placeholder-slate-500">
       </div>
       <button onclick="toggleSort()" id="sortBtn" class="bg-slate-800 border border-slate-700 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white transition flex items-center gap-1">
         <span>🔤</span> <span id="sortLabel">A-Z</span>
@@ -42,19 +42,19 @@
     </div>
   </header>
 
-  <!-- Kaartenlijst -->
-  <main class="p-4 max-w-4xl w-full mx-auto flex-1">
-    <div id="cardList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+  <!-- Kaartenlijst: Altijd 2 kolommen naast elkaar op elk scherm -->
+  <main class="p-3 max-w-lg w-full mx-auto flex-1">
+    <div id="cardList" class="grid grid-cols-2 gap-3"></div>
   </main>
 
   <!-- Bottom Navigation Bar -->
   <nav class="fixed bottom-0 inset-x-0 bg-slate-900/95 backdrop-blur border-t border-slate-800 z-30 px-6 py-2 flex justify-around items-center">
     <button onclick="switchTab('all')" id="tabAllBtn" class="flex flex-col items-center gap-1 text-blue-500 py-1 transition">
-      <span class="text-lg">🗂️</span>
+      <span class="text-xl">🗂️</span>
       <span class="text-xs font-semibold">Alle Kaarten</span>
     </button>
     <button onclick="switchTab('favorites')" id="tabFavBtn" class="flex flex-col items-center gap-1 text-slate-400 py-1 transition">
-      <span class="text-lg">⭐</span>
+      <span class="text-xl">⭐</span>
       <span class="text-xs font-semibold">Vaakst Gebruikt</span>
     </button>
   </nav>
@@ -64,7 +64,7 @@
     <div id="viewModalContent" class="bg-white text-slate-900 w-full max-w-sm rounded-3xl p-6 flex flex-col items-center gap-4 text-center shadow-2xl my-auto">
       <div class="w-full flex justify-between items-center border-b pb-3">
         <div class="flex items-center gap-2.5 truncate">
-          <div id="viewLogoWrapper" class="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center bg-slate-100 flex-shrink-0"></div>
+          <div id="viewLogoWrapper" class="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0"></div>
           <h2 id="viewTitle" class="text-xl font-extrabold truncate text-slate-800 text-left"></h2>
         </div>
         <button onclick="closeModal('viewModal')" class="text-slate-400 hover:text-slate-700 text-xl font-bold px-2">✕</button>
@@ -86,74 +86,121 @@
     </div>
   </div>
 
-  <!-- Modal: Kaart Toevoegen -->
+  <!-- Modal: Kaart Toevoegen Wizard (Stap 1 & Stap 2) -->
   <div id="addModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 hidden z-40 overflow-y-auto" onclick="closeModalOnBgClick(event)">
     <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-5 sm:p-6 flex flex-col gap-4 text-white shadow-2xl my-auto max-h-[92vh] overflow-y-auto">
       
+      <!-- Header -->
       <div class="flex justify-between items-center pb-2 border-b border-slate-800">
-        <h2 class="text-lg font-bold">Nieuwe Kaart Toevoegen</h2>
+        <h2 id="wizardTitle" class="text-lg font-bold">Stap 1: Scan & Geef Naam</h2>
         <button onclick="closeModal('addModal')" class="text-slate-400 hover:text-white text-lg font-bold p-1">✕</button>
       </div>
 
       <!-- Duplicaat waarschuwing -->
-      <div id="duplicateAlert" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3.5 flex flex-col gap-2">
-        <div class="flex items-center gap-2 text-amber-400 text-sm font-semibold">
+      <div id="duplicateAlert" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 flex flex-col gap-2">
+        <div class="flex items-center gap-2 text-amber-400 text-xs font-semibold">
           <span>⚠️</span> <span id="duplicateAlertText"></span>
         </div>
-        <button id="goToDuplicateBtn" type="button" class="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold py-2 px-3 rounded-xl self-start transition">
+        <button id="goToDuplicateBtn" type="button" class="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold py-1.5 px-3 rounded-xl self-start transition">
           Bekijk bestaande kaart →
         </button>
       </div>
 
-      <!-- Camera Scanner Container -->
-      <div id="scanner-container" class="hidden overflow-hidden rounded-2xl bg-black border-2 border-blue-500 relative">
-        <div id="reader" style="width: 100%; min-height: 180px;"></div>
-      </div>
-      
-      <div class="grid grid-cols-2 gap-2.5">
-        <button id="scanBtn" onclick="toggleScanner()" class="bg-slate-800 border border-slate-700 hover:bg-slate-700 py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition active:scale-95">
-          <span id="scanBtnIcon">📷</span> <span id="scanBtnText">Camera</span>
-        </button>
-        <button onclick="triggerFileImport()" class="bg-slate-800 border border-slate-700 hover:bg-slate-700 py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition active:scale-95">
-          🖼️ Screenshot
-        </button>
-        <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="importFromImage(this)">
-      </div>
+      <!-- STAP 1: CODE & NAAM -->
+      <div id="wizardStep1" class="flex flex-col gap-4">
+        <!-- Scanner -->
+        <div id="scanner-container" class="hidden overflow-hidden rounded-2xl bg-black border-2 border-blue-500 relative">
+          <div id="reader" style="width: 100%; min-height: 180px;"></div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-2.5">
+          <button id="scanBtn" onclick="toggleScanner()" class="bg-slate-800 border border-slate-700 hover:bg-slate-700 py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition active:scale-95">
+            <span id="scanBtnIcon">📷</span> <span id="scanBtnText">Camera</span>
+          </button>
+          <button onclick="triggerFileImport()" class="bg-slate-800 border border-slate-700 hover:bg-slate-700 py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition active:scale-95">
+            🖼️ Screenshot
+          </button>
+          <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="importFromImage(this)">
+        </div>
 
-      <div class="flex flex-col gap-3">
-        <div>
-          <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Winkel of Dienst</label>
-          <input id="cardName" oninput="fetchLogoSuggestions(this.value)" type="text" placeholder="bv. Delhaize, Colruyt, Decathlon" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 mt-1 focus:outline-none focus:border-blue-500 text-white">
-          
-          <!-- Logo Selectie Container -->
-          <div id="logoPicker" class="mt-2 hidden">
-            <label class="text-[11px] font-semibold text-slate-400 uppercase">Kies Icoon / Logo</label>
-            <div id="logoOptions" class="flex gap-2 mt-1 overflow-x-auto pb-1"></div>
+        <div class="flex flex-col gap-3">
+          <div>
+            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Winkelnaam</label>
+            <input id="cardName" type="text" placeholder="bv. Colruyt, Delhaize, Decathlon" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 mt-1 focus:outline-none focus:border-blue-500 text-white">
+          </div>
+
+          <div>
+            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Code / Barcode</label>
+            <input id="cardNumber" type="text" placeholder="Scan of typ code" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 mt-1 font-mono text-sm focus:outline-none focus:border-blue-500 text-white">
+          </div>
+
+          <div>
+            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Formaat</label>
+            <div class="grid grid-cols-2 gap-2 mt-1">
+              <button type="button" id="typeBarcodeBtn" onclick="setType('BARCODE')" class="py-2 rounded-xl text-xs font-bold border border-slate-700 bg-blue-600 text-white transition">Streepjescode</button>
+              <button type="button" id="typeQrBtn" onclick="setType('QR_CODE')" class="py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-800 text-slate-400 transition">QR-Code</button>
+            </div>
           </div>
         </div>
 
-        <div>
-          <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Code of Tekst</label>
-          <input id="cardNumber" type="text" placeholder="Barcode of scan-inhoud" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 mt-1 font-mono text-sm focus:outline-none focus:border-blue-500 text-white">
-        </div>
-
-        <!-- Handmatige type selector -->
-        <div>
-          <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Type Code</label>
-          <div class="grid grid-cols-2 gap-2 mt-1">
-            <button type="button" id="typeBarcodeBtn" onclick="setType('BARCODE')" class="py-2 rounded-xl text-xs font-bold border border-slate-700 bg-blue-600 text-white transition">
-              Streepjescode
-            </button>
-            <button type="button" id="typeQrBtn" onclick="setType('QR_CODE')" class="py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-800 text-slate-400 transition">
-              QR-Code
-            </button>
-          </div>
+        <div class="flex gap-2.5 pt-2">
+          <button onclick="closeModal('addModal')" class="flex-1 bg-slate-800 hover:bg-slate-700 py-3 rounded-xl text-sm font-semibold transition active:scale-95">Annuleren</button>
+          <button onclick="goToStep2()" class="flex-1 bg-blue-600 hover:bg-blue-500 py-3 rounded-xl text-sm font-bold transition shadow active:scale-95">Volgende: Icoon →</button>
         </div>
       </div>
 
-      <div class="flex gap-2.5 pt-2 mt-auto">
-        <button onclick="closeModal('addModal')" class="flex-1 bg-slate-800 hover:bg-slate-700 py-3 rounded-xl text-sm font-semibold transition active:scale-95">Annuleren</button>
-        <button onclick="saveCard()" class="flex-1 bg-blue-600 hover:bg-blue-500 py-3 rounded-xl text-sm font-bold transition shadow active:scale-95">Opslaan</button>
+      <!-- STAP 2: LOGO / AFBEELDING / INITIALEN KIEZEN -->
+      <div id="wizardStep2" class="hidden flex flex-col gap-4">
+        
+        <!-- Preview van de tegel -->
+        <div class="flex flex-col items-center justify-center p-3 bg-slate-950 border border-slate-800 rounded-2xl">
+          <span class="text-[11px] font-semibold text-slate-400 uppercase mb-2">Voorbeeld Tegel</span>
+          <div id="previewTile" class="w-20 h-20 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-inner bg-blue-600 text-white overflow-hidden p-1">
+            <span id="previewInitials">CO</span>
+          </div>
+          <span id="previewName" class="text-sm font-bold text-white mt-2 truncate max-w-[150px]">Colruyt</span>
+        </div>
+
+        <!-- Optie A: Online Logo Zoeken -->
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">1. Online Logo Zoeken</label>
+          <div class="flex gap-2">
+            <input id="logoSearchQuery" type="text" placeholder="bv. Colruyt logo" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-500">
+            <button onclick="searchWebLogos()" type="button" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-2 rounded-xl text-xs font-semibold">Zoek</button>
+          </div>
+          <div id="onlineLogoResults" class="flex gap-2 overflow-x-auto py-1 min-h-[50px] items-center">
+            <span class="text-xs text-slate-500">Klik op 'Zoek' voor suggesties</span>
+          </div>
+        </div>
+
+        <!-- Optie B: Foto van Fysieke Kaart Trekken -->
+        <div class="flex flex-col gap-2 border-t border-slate-800 pt-3">
+          <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">2. Foto van Fysieke Kaart</label>
+          <button onclick="document.getElementById('cardPhotoInput').click()" type="button" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2">
+            📸 Neem Foto / Kies Afbeelding
+          </button>
+          <input type="file" id="cardPhotoInput" accept="image/*" capture="environment" class="hidden" onchange="handleCardPhotoUpload(this)">
+        </div>
+
+        <!-- Optie C: Kleur & Initialen -->
+        <div class="flex flex-col gap-2 border-t border-slate-800 pt-3">
+          <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">3. Of kies Kleur & Initialen</label>
+          <div class="flex gap-2 overflow-x-auto py-1">
+            <button type="button" onclick="selectColorTile('#2563eb')" class="w-8 h-8 rounded-full bg-blue-600 flex-shrink-0 border-2 border-white"></button>
+            <button type="button" onclick="selectColorTile('#16a34a')" class="w-8 h-8 rounded-full bg-green-600 flex-shrink-0 border border-slate-700"></button>
+            <button type="button" onclick="selectColorTile('#dc2626')" class="w-8 h-8 rounded-full bg-red-600 flex-shrink-0 border border-slate-700"></button>
+            <button type="button" onclick="selectColorTile('#ea580c')" class="w-8 h-8 rounded-full bg-orange-600 flex-shrink-0 border border-slate-700"></button>
+            <button type="button" onclick="selectColorTile('#9333ea')" class="w-8 h-8 rounded-full bg-purple-600 flex-shrink-0 border border-slate-700"></button>
+            <button type="button" onclick="selectColorTile('#0d9488')" class="w-8 h-8 rounded-full bg-teal-600 flex-shrink-0 border border-slate-700"></button>
+            <button type="button" onclick="selectColorTile('#e11d48')" class="w-8 h-8 rounded-full bg-rose-600 flex-shrink-0 border border-slate-700"></button>
+            <button type="button" onclick="selectColorTile('#334155')" class="w-8 h-8 rounded-full bg-slate-700 flex-shrink-0 border border-slate-700"></button>
+          </div>
+        </div>
+
+        <div class="flex gap-2.5 pt-3 border-t border-slate-800">
+          <button onclick="goToStep1()" class="flex-1 bg-slate-800 hover:bg-slate-700 py-3 rounded-xl text-sm font-semibold transition">← Terug</button>
+          <button onclick="saveFinalCard()" class="flex-1 bg-blue-600 hover:bg-blue-500 py-3 rounded-xl text-sm font-bold transition shadow">Opslaan</button>
+        </div>
       </div>
     </div>
   </div>
@@ -164,11 +211,19 @@
     let cards = JSON.parse(localStorage.getItem('cards') || '[]');
     let html5QrCode = null;
     let currentSelectedType = 'BARCODE';
-    let currentSelectedLogo = '';
-    let currentTab = 'all'; // 'all' of 'favorites'
+    let currentTab = 'all'; 
     let sortAsc = true;
     let isProcessingScan = false;
     let isCameraBusy = false;
+
+    // Temporary storage voor de wizard
+    let tempCardData = {
+      name: '',
+      code: '',
+      type: 'BARCODE',
+      iconType: 'COLOR', // 'IMAGE' of 'COLOR'
+      iconData: '#2563eb' // URL/Base64 of Kleurcode
+    };
 
     // --- Tab Management ---
     function switchTab(tab) {
@@ -192,7 +247,15 @@
       renderCards();
     }
 
-    // --- Render Cards ---
+    function getInitials(name) {
+      const parts = name.trim().split(/\s+/);
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+      }
+      return name.slice(0, 2).toUpperCase();
+    }
+
+    // --- Render Cards (Altijd 2 kolommen naast elkaar) ---
     function renderCards() {
       const container = document.getElementById('cardList');
       const query = document.getElementById('searchInput').value.toLowerCase().trim();
@@ -203,10 +266,12 @@
       );
 
       if (currentTab === 'favorites') {
-        // Sorteer op vaakst geopend
-        filtered.sort((a, b) => (b.openCount || 0) - (a.openCount || 0));
+        // Alleen kaarten die minimaal 1x geopend zijn, gesorteerd op openCount, MAXIMAAL 6
+        filtered = filtered
+          .filter(c => (c.openCount || 0) > 0)
+          .sort((a, b) => (b.openCount || 0) - (a.openCount || 0))
+          .slice(0, 6);
       } else {
-        // Sorteer alfabetisch
         filtered.sort((a, b) => sortAsc 
           ? a.name.localeCompare(b.name) 
           : b.name.localeCompare(a.name)
@@ -215,84 +280,44 @@
 
       if (filtered.length === 0) {
         const msg = currentTab === 'favorites' 
-          ? 'Nog geen geopende kaarten.' 
-          : (query ? 'Geen kaarten gevonden.' : 'Geen kaarten bewaard.<br>Tik op "+ Nieuw" om te scannen.');
-        container.innerHTML = `<div class="col-span-full text-center text-slate-600 py-16 border border-dashed border-slate-800 rounded-3xl"><p class="text-4xl mb-3">📭</p><p class="text-sm">${msg}</p></div>`;
+          ? 'Nog geen vaakst gebruikte kaarten.<br>Open eerst enkele kaarten.' 
+          : (query ? 'Geen kaarten gevonden.' : 'Geen kaarten bewaard.<br>Tik op "+ Nieuw" om te beginnen.');
+        container.innerHTML = `<div class="col-span-2 text-center text-slate-600 py-16 border border-dashed border-slate-800 rounded-3xl"><p class="text-4xl mb-3">📭</p><p class="text-sm">${msg}</p></div>`;
         return;
       }
 
       filtered.forEach((card) => {
-        // Vind originele index in cards array
         const origIndex = cards.findIndex(c => c.name === card.name && c.code === card.code);
-        const isQR = card.type === 'QR_CODE';
         const item = document.createElement('div');
-        item.className = 'bg-slate-900 border border-slate-800 rounded-2xl p-4 flex justify-between items-center cursor-pointer hover:border-slate-700 transition active:scale-[0.98] shadow-sm';
-        
-        const logoHtml = card.logo 
-          ? `<img src="${card.logo}" class="w-10 h-10 rounded-xl object-contain bg-white p-1 flex-shrink-0" onerror="this.onerror=null; this.src=''; this.innerHTML='🏪';">`
-          : `<div class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-lg flex-shrink-0">🏪</div>`;
+        item.className = 'flex flex-col items-center group relative cursor-pointer';
+
+        // Bepaal tegel-weergave (Afbeelding vs Kleur + Initialen)
+        let tileInner = '';
+        if (card.iconType === 'IMAGE' && card.iconData) {
+          tileInner = `<img src="${card.iconData}" class="w-full h-full object-contain p-2 bg-white" onerror="this.parentElement.style.backgroundColor='#2563eb'; this.parentElement.innerHTML='<span class=\'font-bold text-2xl text-white\'>${getInitials(card.name)}</span>'">`;
+        } else {
+          const bgColor = card.iconData || '#2563eb';
+          tileInner = `<span class="font-bold text-2xl text-white">${getInitials(card.name)}</span>`;
+        }
 
         item.innerHTML = `
-          <div onclick="showCard(${origIndex})" class="flex items-center gap-3.5 flex-1 min-w-0 pr-2">
-            ${logoHtml}
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2">
-                <h3 class="font-bold text-base text-white truncate">${card.name}</h3>
-                <span class="text-[10px] bg-slate-800 border border-slate-700 text-slate-300 px-1.5 py-0.5 rounded font-mono">${isQR ? 'QR' : 'BAR'}</span>
-              </div>
-              <p class="text-xs font-mono text-slate-400 mt-0.5 truncate">${card.code}</p>
-              ${currentTab === 'favorites' ? `<span class="text-[10px] text-blue-400 font-medium">⭐ ${card.openCount || 0}x geopend</span>` : ''}
-            </div>
+          <div onclick="showCard(${origIndex})" class="w-full aspect-square bg-slate-900 border border-slate-800 rounded-3xl flex items-center justify-center overflow-hidden shadow-md active:scale-95 transition-transform" style="${card.iconType !== 'IMAGE' ? `background-color: ${card.iconData || '#2563eb'}` : ''}">
+            ${tileInner}
           </div>
-          <button onclick="deleteCard(${origIndex})" class="text-slate-600 hover:text-red-400 p-2 text-lg">✕</button>
+          <div onclick="showCard(${origIndex})" class="w-full mt-2 text-center">
+            <h3 class="font-bold text-sm text-white truncate px-1">${card.name}</h3>
+          </div>
+          <button onclick="deleteCard(${origIndex})" class="absolute top-1.5 right-1.5 w-7 h-7 bg-slate-950/70 hover:bg-red-600 backdrop-blur rounded-full text-slate-400 hover:text-white flex items-center justify-center text-xs transition">✕</button>
         `;
         container.appendChild(item);
       });
     }
 
-    // --- Logo Suggesties & Picker ---
-    function fetchLogoSuggestions(name) {
-      const picker = document.getElementById('logoPicker');
-      const optionsContainer = document.getElementById('logoOptions');
-      if (!name || name.trim().length < 2) {
-        picker.classList.add('hidden');
-        currentSelectedLogo = '';
-        return;
-      }
-
-      const clean = name.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-      picker.classList.remove('hidden');
-      optionsContainer.innerHTML = '';
-
-      // Genereer mogelijke domeinen voor populaire winkels
-      const domains = [`${clean}.be`, `${clean}.com`, `${clean}.nl`];
-      const logos = [
-        ...domains.map(d => `https://logo.clearbit.com/${d}`),
-        ...domains.map(d => `https://www.google.com/s2/favicons?domain=${d}&sz=64`)
-      ];
-
-      logos.forEach((url, i) => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = `w-10 h-10 rounded-xl bg-white border-2 p-1 flex items-center justify-center overflow-hidden flex-shrink-0 transition ${i === 0 ? 'border-blue-500' : 'border-slate-700'}`;
-        btn.innerHTML = `<img src="${url}" class="w-full h-full object-contain" onerror="this.parentElement.remove()">`;
-        btn.onclick = () => {
-          currentSelectedLogo = url;
-          optionsContainer.querySelectorAll('button').forEach(b => b.classList.replace('border-blue-500', 'border-slate-700'));
-          btn.classList.replace('border-slate-700', 'border-blue-500');
-        };
-        optionsContainer.appendChild(btn);
-      });
-
-      // Selecteer standaard de eerste
-      currentSelectedLogo = logos[0];
-    }
-
-    // --- Show Card & Auto Count ---
+    // --- Show Card ---
     function showCard(index) {
       const card = cards[index];
       
-      // Update open count teller
+      // Update teller op achtergrond (niet zichtbaar voor gebruiker)
       card.openCount = (card.openCount || 0) + 1;
       localStorage.setItem('cards', JSON.stringify(cards));
 
@@ -300,11 +325,11 @@
       document.getElementById('viewCode').innerText = card.code;
       
       const logoWrapper = document.getElementById('viewLogoWrapper');
-      if (card.logo) {
-        logoWrapper.innerHTML = `<img src="${card.logo}" class="w-full h-full object-contain p-0.5">`;
-        logoWrapper.classList.remove('hidden');
+      if (card.iconType === 'IMAGE' && card.iconData) {
+        logoWrapper.innerHTML = `<img src="${card.iconData}" class="w-full h-full object-contain bg-white p-0.5">`;
       } else {
-        logoWrapper.innerHTML = '🏪';
+        logoWrapper.style.backgroundColor = card.iconData || '#2563eb';
+        logoWrapper.innerHTML = `<span class="text-xs font-bold text-white">${getInitials(card.name)}</span>`;
       }
 
       const barcodeSvg = document.getElementById('barcodeCanvas');
@@ -339,13 +364,32 @@
       document.getElementById('viewModal').classList.remove('hidden');
     }
 
-    // --- Save & Duplicate Check ---
-    function saveCard() {
+    // --- Wizard Flow ---
+    function openAddModal() {
+      document.getElementById('cardName').value = '';
+      document.getElementById('cardNumber').value = '';
+      document.getElementById('duplicateAlert').classList.add('hidden');
+      setType('BARCODE');
+      goToStep1();
+      document.getElementById('addModal').classList.remove('hidden');
+    }
+
+    function goToStep1() {
+      document.getElementById('wizardTitle').innerText = 'Stap 1: Scan & Geef Naam';
+      document.getElementById('wizardStep1').classList.remove('hidden');
+      document.getElementById('wizardStep2').classList.add('hidden');
+    }
+
+    function goToStep2() {
       const name = document.getElementById('cardName').value.trim();
       const code = document.getElementById('cardNumber').value.trim();
-      if (!name || !code) return alert('Vul een naam en barcode/code in.');
 
-      // Check duplicaten op naam OF op barcode
+      if (!name || !code) {
+        alert('Vul zowel een winkelnaam als een code in.');
+        return;
+      }
+
+      // Check duplicaten
       const existingNameIndex = cards.findIndex(c => c.name.toLowerCase() === name.toLowerCase());
       const existingCodeIndex = cards.findIndex(c => c.code.toLowerCase() === code.toLowerCase());
 
@@ -365,13 +409,109 @@
         alertBox.classList.remove('hidden');
         return;
       }
-      
-      cards.push({ 
-        name, 
-        code, 
-        type: currentSelectedType,
-        logo: currentSelectedLogo || '',
-        openCount: 0 
+
+      forceStopScanner();
+
+      tempCardData.name = name;
+      tempCardData.code = code;
+      tempCardData.type = currentSelectedType;
+      tempCardData.iconType = 'COLOR';
+      tempCardData.iconData = '#2563eb';
+
+      // UI Initialiseren voor stap 2
+      document.getElementById('wizardTitle').innerText = 'Stap 2: Kies Icoon of Kleur';
+      document.getElementById('wizardStep1').classList.add('hidden');
+      document.getElementById('wizardStep2').classList.remove('hidden');
+      document.getElementById('previewName').innerText = name;
+      document.getElementById('logoSearchQuery').value = name;
+      updateTilePreview();
+      searchWebLogos();
+    }
+
+    function updateTilePreview() {
+      const preview = document.getElementById('previewTile');
+      if (tempCardData.iconType === 'IMAGE' && tempCardData.iconData) {
+        preview.style.backgroundColor = '#ffffff';
+        preview.innerHTML = `<img src="${tempCardData.iconData}" class="w-full h-full object-contain p-1">`;
+      } else {
+        preview.style.backgroundColor = tempCardData.iconData || '#2563eb';
+        preview.innerHTML = `<span id="previewInitials">${getInitials(tempCardData.name)}</span>`;
+      }
+    }
+
+    function selectColorTile(hex) {
+      tempCardData.iconType = 'COLOR';
+      tempCardData.iconData = hex;
+      updateTilePreview();
+    }
+
+    // Zoekt logo's via open APIs (Wikipedia & Clearbit/Google)
+    async function searchWebLogos() {
+      const query = document.getElementById('logoSearchQuery').value.trim() || tempCardData.name;
+      const resultsContainer = document.getElementById('onlineLogoResults');
+      resultsContainer.innerHTML = '<span class="text-xs text-slate-400">Zoeken...</span>';
+
+      const clean = query.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const urls = [
+        `https://logo.clearbit.com/${clean}.be`,
+        `https://logo.clearbit.com/${clean}.com`,
+        `https://logo.clearbit.com/${clean}.nl`,
+        `https://www.google.com/s2/favicons?domain=${clean}.be&sz=128`,
+        `https://www.google.com/s2/favicons?domain=${clean}.com&sz=128`
+      ];
+
+      resultsContainer.innerHTML = '';
+      urls.forEach((url) => {
+        const imgBtn = document.createElement('button');
+        imgBtn.type = 'button';
+        imgBtn.className = 'w-12 h-12 bg-white rounded-xl p-1 border-2 border-slate-700 flex-shrink-0 flex items-center justify-center hover:border-blue-500 transition overflow-hidden';
+        imgBtn.innerHTML = `<img src="${url}" class="max-w-full max-h-full object-contain" onerror="this.parentElement.remove()">`;
+        imgBtn.onclick = () => {
+          tempCardData.iconType = 'IMAGE';
+          tempCardData.iconData = url;
+          updateTilePreview();
+        };
+        resultsContainer.appendChild(imgBtn);
+      });
+    }
+
+    // Comprimeer en converteer geüploade foto naar Base64
+    function handleCardPhotoUpload(input) {
+      if (!input.files || input.files.length === 0) return;
+      const file = input.files[0];
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxDim = 200;
+          let w = img.width;
+          let h = img.height;
+          if (w > h) { h = (h / w) * maxDim; w = maxDim; } 
+          else { w = (w / h) * maxDim; h = maxDim; }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          
+          tempCardData.iconType = 'IMAGE';
+          tempCardData.iconData = canvas.toDataURL('image/jpeg', 0.8);
+          updateTilePreview();
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function saveFinalCard() {
+      cards.push({
+        name: tempCardData.name,
+        code: tempCardData.code,
+        type: tempCardData.type,
+        iconType: tempCardData.iconType,
+        iconData: tempCardData.iconData,
+        openCount: 0
       });
 
       localStorage.setItem('cards', JSON.stringify(cards));
@@ -379,16 +519,7 @@
       closeModal('addModal');
     }
 
-    function openAddModal() {
-      document.getElementById('cardName').value = '';
-      document.getElementById('cardNumber').value = '';
-      document.getElementById('duplicateAlert').classList.add('hidden');
-      document.getElementById('logoPicker').classList.add('hidden');
-      currentSelectedLogo = '';
-      setType('BARCODE');
-      document.getElementById('addModal').classList.remove('hidden');
-    }
-
+    // --- Helper Functions ---
     function setType(type) {
       currentSelectedType = type;
       const bBtn = document.getElementById('typeBarcodeBtn');
