@@ -15,6 +15,12 @@
   <style>
     #reader video { object-fit: cover; border-radius: 0.75rem; width: 100% !important; }
     input[type="text"] { font-size: 16px; }
+    @media screen and (orientation: landscape) and (max-height: 500px) {
+      body {
+        max-width: 420px;
+        margin: 0 auto;
+      }
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-full flex flex-col font-sans select-none antialiased pb-28">
