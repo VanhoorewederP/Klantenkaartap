@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Mijn Klantenkaarten</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#1e293b">
+  <meta name="theme-color" content="#090d16">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -17,28 +17,56 @@
     input[type="text"] { font-size: 16px; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-full flex flex-col font-sans select-none antialiased">
+<body class="bg-slate-950 text-slate-100 min-h-full flex flex-col font-sans select-none antialiased pb-24">
 
-  <!-- Header -->
-  <header class="p-4 bg-slate-900 shadow-md sticky top-0 z-10 border-b border-slate-800 flex justify-between items-center">
-    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-      <span>💳</span> Mijn Kaarten
-    </h1>
-    <button onclick="openAddModal()" class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white px-4 py-2 rounded-xl text-sm font-semibold transition shadow">
-      + Nieuw
-    </button>
+  <!-- Top Bar -->
+  <header class="p-4 bg-slate-900/90 backdrop-blur shadow-md sticky top-0 z-20 border-b border-slate-800 flex flex-col gap-3">
+    <div class="flex justify-between items-center">
+      <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+        <span>💳</span> Mijn Kaarten
+      </h1>
+      <button onclick="openAddModal()" class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white px-4 py-2 rounded-xl text-sm font-semibold transition shadow">
+        + Nieuw
+      </button>
+    </div>
+
+    <!-- Zoekbalk & Sorteerknop -->
+    <div class="flex gap-2">
+      <div class="relative flex-1">
+        <span class="absolute inset-y-0 left-3 flex items-center text-slate-400 pointer-events-none">🔍</span>
+        <input id="searchInput" oninput="renderCards()" type="text" placeholder="Zoek kaart of code..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-blue-500 text-white placeholder-slate-500">
+      </div>
+      <button onclick="toggleSort()" id="sortBtn" class="bg-slate-800 border border-slate-700 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white transition flex items-center gap-1">
+        <span>🔤</span> <span id="sortLabel">A-Z</span>
+      </button>
+    </div>
   </header>
 
-  <!-- Kaartenlijst (responsieve grid voor mobiel/tablet/landscape) -->
+  <!-- Kaartenlijst -->
   <main class="p-4 max-w-4xl w-full mx-auto flex-1">
     <div id="cardList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
   </main>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 inset-x-0 bg-slate-900/95 backdrop-blur border-t border-slate-800 z-30 px-6 py-2 flex justify-around items-center">
+    <button onclick="switchTab('all')" id="tabAllBtn" class="flex flex-col items-center gap-1 text-blue-500 py-1 transition">
+      <span class="text-lg">🗂️</span>
+      <span class="text-xs font-semibold">Alle Kaarten</span>
+    </button>
+    <button onclick="switchTab('favorites')" id="tabFavBtn" class="flex flex-col items-center gap-1 text-slate-400 py-1 transition">
+      <span class="text-lg">⭐</span>
+      <span class="text-xs font-semibold">Vaakst Gebruikt</span>
+    </button>
+  </nav>
 
   <!-- Modal: Toon Code (Fullscreen overlay) -->
   <div id="viewModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50 overflow-y-auto" onclick="closeModalOnBgClick(event)">
     <div id="viewModalContent" class="bg-white text-slate-900 w-full max-w-sm rounded-3xl p-6 flex flex-col items-center gap-4 text-center shadow-2xl my-auto">
       <div class="w-full flex justify-between items-center border-b pb-3">
-        <h2 id="viewTitle" class="text-xl font-extrabold truncate text-slate-800 text-left"></h2>
+        <div class="flex items-center gap-2.5 truncate">
+          <div id="viewLogoWrapper" class="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center bg-slate-100 flex-shrink-0"></div>
+          <h2 id="viewTitle" class="text-xl font-extrabold truncate text-slate-800 text-left"></h2>
+        </div>
         <button onclick="closeModal('viewModal')" class="text-slate-400 hover:text-slate-700 text-xl font-bold px-2">✕</button>
       </div>
       
@@ -52,7 +80,7 @@
         <p id="viewCode" class="font-mono text-sm tracking-wider font-bold text-slate-700 break-all select-all"></p>
       </div>
       
-      <button onclick="closeModal('viewModal')" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 rounded-xl font-bold transition active:scale-95 shadow">
+      <button onclick="closeModal('viewModal')" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-3.5 rounded-xl font-bold transition active:scale-95 shadow">
         Klaar
       </button>
     </div>
@@ -65,6 +93,16 @@
       <div class="flex justify-between items-center pb-2 border-b border-slate-800">
         <h2 class="text-lg font-bold">Nieuwe Kaart Toevoegen</h2>
         <button onclick="closeModal('addModal')" class="text-slate-400 hover:text-white text-lg font-bold p-1">✕</button>
+      </div>
+
+      <!-- Duplicaat waarschuwing -->
+      <div id="duplicateAlert" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3.5 flex flex-col gap-2">
+        <div class="flex items-center gap-2 text-amber-400 text-sm font-semibold">
+          <span>⚠️</span> <span id="duplicateAlertText"></span>
+        </div>
+        <button id="goToDuplicateBtn" type="button" class="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold py-2 px-3 rounded-xl self-start transition">
+          Bekijk bestaande kaart →
+        </button>
       </div>
 
       <!-- Camera Scanner Container -->
@@ -85,7 +123,13 @@
       <div class="flex flex-col gap-3">
         <div>
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Winkel of Dienst</label>
-          <input id="cardName" type="text" placeholder="bv. Colruyt, UGent, Fitness" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 mt-1 focus:outline-none focus:border-blue-500 text-white">
+          <input id="cardName" oninput="fetchLogoSuggestions(this.value)" type="text" placeholder="bv. Delhaize, Colruyt, Decathlon" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 mt-1 focus:outline-none focus:border-blue-500 text-white">
+          
+          <!-- Logo Selectie Container -->
+          <div id="logoPicker" class="mt-2 hidden">
+            <label class="text-[11px] font-semibold text-slate-400 uppercase">Kies Icoon / Logo</label>
+            <div id="logoOptions" class="flex gap-2 mt-1 overflow-x-auto pb-1"></div>
+          </div>
         </div>
 
         <div>
@@ -120,49 +164,149 @@
     let cards = JSON.parse(localStorage.getItem('cards') || '[]');
     let html5QrCode = null;
     let currentSelectedType = 'BARCODE';
+    let currentSelectedLogo = '';
+    let currentTab = 'all'; // 'all' of 'favorites'
+    let sortAsc = true;
+    let isProcessingScan = false;
+    let isCameraBusy = false;
 
-    function setType(type) {
-      currentSelectedType = type;
-      const bBtn = document.getElementById('typeBarcodeBtn');
-      const qBtn = document.getElementById('typeQrBtn');
-      if (type === 'QR_CODE') {
-        qBtn.className = 'py-2 rounded-xl text-xs font-bold border border-blue-500 bg-blue-600 text-white transition';
-        bBtn.className = 'py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-800 text-slate-400 transition';
+    // --- Tab Management ---
+    function switchTab(tab) {
+      currentTab = tab;
+      const allBtn = document.getElementById('tabAllBtn');
+      const favBtn = document.getElementById('tabFavBtn');
+
+      if (tab === 'all') {
+        allBtn.className = 'flex flex-col items-center gap-1 text-blue-500 py-1 transition';
+        favBtn.className = 'flex flex-col items-center gap-1 text-slate-400 py-1 transition';
       } else {
-        bBtn.className = 'py-2 rounded-xl text-xs font-bold border border-blue-500 bg-blue-600 text-white transition';
-        qBtn.className = 'py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-800 text-slate-400 transition';
+        favBtn.className = 'flex flex-col items-center gap-1 text-blue-500 py-1 transition';
+        allBtn.className = 'flex flex-col items-center gap-1 text-slate-400 py-1 transition';
       }
+      renderCards();
     }
 
+    function toggleSort() {
+      sortAsc = !sortAsc;
+      document.getElementById('sortLabel').innerText = sortAsc ? 'A-Z' : 'Z-A';
+      renderCards();
+    }
+
+    // --- Render Cards ---
     function renderCards() {
       const container = document.getElementById('cardList');
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
       container.innerHTML = '';
-      if (cards.length === 0) {
-        container.innerHTML = '<div class="col-span-full text-center text-slate-600 py-16 border border-dashed border-slate-800 rounded-3xl"><p class="text-4xl mb-3">📭</p><p class="text-sm">Geen kaarten bewaard.<br>Tik op "+ Nieuw" om te scannen.</p></div>';
+
+      let filtered = cards.filter(c => 
+        c.name.toLowerCase().includes(query) || c.code.toLowerCase().includes(query)
+      );
+
+      if (currentTab === 'favorites') {
+        // Sorteer op vaakst geopend
+        filtered.sort((a, b) => (b.openCount || 0) - (a.openCount || 0));
+      } else {
+        // Sorteer alfabetisch
+        filtered.sort((a, b) => sortAsc 
+          ? a.name.localeCompare(b.name) 
+          : b.name.localeCompare(a.name)
+        );
+      }
+
+      if (filtered.length === 0) {
+        const msg = currentTab === 'favorites' 
+          ? 'Nog geen geopende kaarten.' 
+          : (query ? 'Geen kaarten gevonden.' : 'Geen kaarten bewaard.<br>Tik op "+ Nieuw" om te scannen.');
+        container.innerHTML = `<div class="col-span-full text-center text-slate-600 py-16 border border-dashed border-slate-800 rounded-3xl"><p class="text-4xl mb-3">📭</p><p class="text-sm">${msg}</p></div>`;
         return;
       }
-      cards.sort((a, b) => a.name.localeCompare(b.name)).forEach((card, index) => {
+
+      filtered.forEach((card) => {
+        // Vind originele index in cards array
+        const origIndex = cards.findIndex(c => c.name === card.name && c.code === card.code);
         const isQR = card.type === 'QR_CODE';
         const item = document.createElement('div');
         item.className = 'bg-slate-900 border border-slate-800 rounded-2xl p-4 flex justify-between items-center cursor-pointer hover:border-slate-700 transition active:scale-[0.98] shadow-sm';
+        
+        const logoHtml = card.logo 
+          ? `<img src="${card.logo}" class="w-10 h-10 rounded-xl object-contain bg-white p-1 flex-shrink-0" onerror="this.onerror=null; this.src=''; this.innerHTML='🏪';">`
+          : `<div class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-lg flex-shrink-0">🏪</div>`;
+
         item.innerHTML = `
-          <div onclick="showCard(${index})" class="flex-1 min-w-0 pr-3">
-            <div class="flex items-center gap-2">
-              <span class="text-xs bg-slate-800 border border-slate-700 text-slate-300 px-1.5 py-0.5 rounded font-mono">${isQR ? 'QR' : 'BAR'}</span>
-              <h3 class="font-bold text-base text-white truncate">${card.name}</h3>
+          <div onclick="showCard(${origIndex})" class="flex items-center gap-3.5 flex-1 min-w-0 pr-2">
+            ${logoHtml}
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <h3 class="font-bold text-base text-white truncate">${card.name}</h3>
+                <span class="text-[10px] bg-slate-800 border border-slate-700 text-slate-300 px-1.5 py-0.5 rounded font-mono">${isQR ? 'QR' : 'BAR'}</span>
+              </div>
+              <p class="text-xs font-mono text-slate-400 mt-0.5 truncate">${card.code}</p>
+              ${currentTab === 'favorites' ? `<span class="text-[10px] text-blue-400 font-medium">⭐ ${card.openCount || 0}x geopend</span>` : ''}
             </div>
-            <p class="text-xs font-mono text-slate-400 mt-1 truncate">${card.code}</p>
           </div>
-          <button onclick="deleteCard(${index})" class="text-slate-600 hover:text-red-400 p-2 text-lg">✕</button>
+          <button onclick="deleteCard(${origIndex})" class="text-slate-600 hover:text-red-400 p-2 text-lg">✕</button>
         `;
         container.appendChild(item);
       });
     }
 
+    // --- Logo Suggesties & Picker ---
+    function fetchLogoSuggestions(name) {
+      const picker = document.getElementById('logoPicker');
+      const optionsContainer = document.getElementById('logoOptions');
+      if (!name || name.trim().length < 2) {
+        picker.classList.add('hidden');
+        currentSelectedLogo = '';
+        return;
+      }
+
+      const clean = name.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      picker.classList.remove('hidden');
+      optionsContainer.innerHTML = '';
+
+      // Genereer mogelijke domeinen voor populaire winkels
+      const domains = [`${clean}.be`, `${clean}.com`, `${clean}.nl`];
+      const logos = [
+        ...domains.map(d => `https://logo.clearbit.com/${d}`),
+        ...domains.map(d => `https://www.google.com/s2/favicons?domain=${d}&sz=64`)
+      ];
+
+      logos.forEach((url, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `w-10 h-10 rounded-xl bg-white border-2 p-1 flex items-center justify-center overflow-hidden flex-shrink-0 transition ${i === 0 ? 'border-blue-500' : 'border-slate-700'}`;
+        btn.innerHTML = `<img src="${url}" class="w-full h-full object-contain" onerror="this.parentElement.remove()">`;
+        btn.onclick = () => {
+          currentSelectedLogo = url;
+          optionsContainer.querySelectorAll('button').forEach(b => b.classList.replace('border-blue-500', 'border-slate-700'));
+          btn.classList.replace('border-slate-700', 'border-blue-500');
+        };
+        optionsContainer.appendChild(btn);
+      });
+
+      // Selecteer standaard de eerste
+      currentSelectedLogo = logos[0];
+    }
+
+    // --- Show Card & Auto Count ---
     function showCard(index) {
       const card = cards[index];
+      
+      // Update open count teller
+      card.openCount = (card.openCount || 0) + 1;
+      localStorage.setItem('cards', JSON.stringify(cards));
+
       document.getElementById('viewTitle').innerText = card.name;
       document.getElementById('viewCode').innerText = card.code;
+      
+      const logoWrapper = document.getElementById('viewLogoWrapper');
+      if (card.logo) {
+        logoWrapper.innerHTML = `<img src="${card.logo}" class="w-full h-full object-contain p-0.5">`;
+        logoWrapper.classList.remove('hidden');
+      } else {
+        logoWrapper.innerHTML = '🏪';
+      }
+
       const barcodeSvg = document.getElementById('barcodeCanvas');
       const qrcodeContainer = document.getElementById('qrcodeCanvas');
       qrcodeContainer.innerHTML = '';
@@ -195,22 +339,67 @@
       document.getElementById('viewModal').classList.remove('hidden');
     }
 
-    function openAddModal() {
-      document.getElementById('cardName').value = '';
-      document.getElementById('cardNumber').value = '';
-      setType('BARCODE');
-      document.getElementById('addModal').classList.remove('hidden');
-    }
-
+    // --- Save & Duplicate Check ---
     function saveCard() {
       const name = document.getElementById('cardName').value.trim();
       const code = document.getElementById('cardNumber').value.trim();
       if (!name || !code) return alert('Vul een naam en barcode/code in.');
+
+      // Check duplicaten op naam OF op barcode
+      const existingNameIndex = cards.findIndex(c => c.name.toLowerCase() === name.toLowerCase());
+      const existingCodeIndex = cards.findIndex(c => c.code.toLowerCase() === code.toLowerCase());
+
+      if (existingNameIndex !== -1 || existingCodeIndex !== -1) {
+        const targetIndex = existingNameIndex !== -1 ? existingNameIndex : existingCodeIndex;
+        const duplicateField = existingNameIndex !== -1 ? `De naam "${name}"` : `De barcode "${code}"`;
+        
+        const alertBox = document.getElementById('duplicateAlert');
+        const alertText = document.getElementById('duplicateAlertText');
+        const alertBtn = document.getElementById('goToDuplicateBtn');
+        
+        alertText.innerText = `${duplicateField} bestaat al (${cards[targetIndex].name})!`;
+        alertBtn.onclick = () => {
+          closeModal('addModal');
+          showCard(targetIndex);
+        };
+        alertBox.classList.remove('hidden');
+        return;
+      }
       
-      cards.push({ name, code, type: currentSelectedType });
+      cards.push({ 
+        name, 
+        code, 
+        type: currentSelectedType,
+        logo: currentSelectedLogo || '',
+        openCount: 0 
+      });
+
       localStorage.setItem('cards', JSON.stringify(cards));
       renderCards();
       closeModal('addModal');
+    }
+
+    function openAddModal() {
+      document.getElementById('cardName').value = '';
+      document.getElementById('cardNumber').value = '';
+      document.getElementById('duplicateAlert').classList.add('hidden');
+      document.getElementById('logoPicker').classList.add('hidden');
+      currentSelectedLogo = '';
+      setType('BARCODE');
+      document.getElementById('addModal').classList.remove('hidden');
+    }
+
+    function setType(type) {
+      currentSelectedType = type;
+      const bBtn = document.getElementById('typeBarcodeBtn');
+      const qBtn = document.getElementById('typeQrBtn');
+      if (type === 'QR_CODE') {
+        qBtn.className = 'py-2 rounded-xl text-xs font-bold border border-blue-500 bg-blue-600 text-white transition';
+        bBtn.className = 'py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-800 text-slate-400 transition';
+      } else {
+        bBtn.className = 'py-2 rounded-xl text-xs font-bold border border-blue-500 bg-blue-600 text-white transition';
+        qBtn.className = 'py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-800 text-slate-400 transition';
+      }
     }
 
     function deleteCard(index) {
@@ -229,24 +418,18 @@
       return 'BARCODE';
     }
 
-    let isProcessingScan = false;
-    let isCameraBusy = false; // Voorkomt overlappende start/stop acties
-
+    // --- Scanner Logic ---
     async function toggleScanner() {
       if (isCameraBusy) return;
-
       const container = document.getElementById('scanner-container');
       if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
 
-      // State 2 = SCANNING in html5-qrcode
       if (html5QrCode.isScanning) {
         await forceStopScanner();
       } else {
         isCameraBusy = true;
         isProcessingScan = false;
         container.classList.remove('hidden');
-        
-        // UI aanpassen naar 'Stop'
         document.getElementById('scanBtnText').innerText = "Stop";
         document.getElementById('scanBtnIcon').innerText = "⏹";
         const btn = document.getElementById('scanBtn');
@@ -260,25 +443,19 @@
             (decodedText, decodedResult) => {
               if (isProcessingScan) return;
               isProcessingScan = true;
-
-              if ('vibrate' in navigator) {
-                navigator.vibrate(0);
-                navigator.vibrate(80);
-              }
-
+              if ('vibrate' in navigator) { navigator.vibrate(0); navigator.vibrate(80); }
+              
               document.getElementById('cardNumber').value = decodedText;
               const format = decodedResult?.result?.format?.formatName || '';
               setType(detectCodeType(decodedText, format));
-
               forceStopScanner();
             },
-            () => {} // Mute scan frame errors
+            () => {}
           );
         } catch (err) {
-          console.warn("Camera start fout:", err);
           container.classList.add('hidden');
           resetScanBtnUI();
-          alert("Kan camera niet starten. Controleer of je browser toegang heeft tot de camera.");
+          alert("Kan camera niet starten. Controleer browser-toestemmingen.");
         } finally {
           isCameraBusy = false;
         }
@@ -288,20 +465,12 @@
     async function forceStopScanner() {
       if ('vibrate' in navigator) navigator.vibrate(0);
       isProcessingScan = true;
-
       if (html5QrCode) {
         try {
-          // Controleer of de scanner echt actief aan het streamen is
-          if (html5QrCode.isScanning) {
-            await html5QrCode.stop();
-          }
-          // Maak de video canvas elementen netjes leeg zonder fouten
+          if (html5QrCode.isScanning) await html5QrCode.stop();
           html5QrCode.clear();
-        } catch (err) {
-          console.warn("Scanner kon niet gestopt worden (al gestopt of afgesloten):", err);
-        }
+        } catch (err) {}
       }
-
       document.getElementById('scanner-container').classList.add('hidden');
       resetScanBtnUI();
       isProcessingScan = false;
@@ -334,10 +503,10 @@
         const decodedText = await scanner.scanFile(file, false);
         cardInput.value = decodedText;
         setType(detectCodeType(decodedText, ''));
-        navigator.vibrate?.([40, 40]);
+        navigator.vibrate?.(80);
       } catch (err) {
         cardInput.value = "";
-        alert("Geen geldige barcode of QR-code gevonden op deze afbeelding.");
+        alert("Geen geldige barcode of QR-code gevonden op de afbeelding.");
       } finally {
         input.value = '';
       }
