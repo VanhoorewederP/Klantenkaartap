@@ -42,7 +42,7 @@
     </div>
   </header>
 
-  <!-- Kaartenlijst: Altijd 2 kolommen naast elkaar op elk scherm -->
+  <!-- Kaartenlijst: 2 kolommen naast elkaar -->
   <main class="p-3 max-w-lg w-full mx-auto flex-1">
     <div id="cardList" class="grid grid-cols-2 gap-3"></div>
   </main>
@@ -59,9 +59,11 @@
     </button>
   </nav>
 
-  <!-- Modal: Toon Code (Fullscreen overlay) -->
+  <!-- Modal: Toon Code + Bewerken & Verwijderen -->
   <div id="viewModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50 overflow-y-auto" onclick="closeModalOnBgClick(event)">
     <div id="viewModalContent" class="bg-white text-slate-900 w-full max-w-sm rounded-3xl p-6 flex flex-col items-center gap-4 text-center shadow-2xl my-auto">
+      
+      <!-- Top in modal -->
       <div class="w-full flex justify-between items-center border-b pb-3">
         <div class="flex items-center gap-2.5 truncate">
           <div id="viewLogoWrapper" class="w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0"></div>
@@ -80,13 +82,24 @@
         <p id="viewCode" class="font-mono text-sm tracking-wider font-bold text-slate-700 break-all select-all"></p>
       </div>
       
-      <button onclick="closeModal('viewModal')" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-3.5 rounded-xl font-bold transition active:scale-95 shadow">
-        Klaar
-      </button>
+      <!-- Actieknoppen -->
+      <div class="w-full flex flex-col gap-2 pt-2 border-t border-slate-100">
+        <div class="flex gap-2">
+          <button onclick="editCurrentCard()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 py-3 rounded-xl font-semibold text-sm transition active:scale-95 flex items-center justify-center gap-1.5">
+            <span>✏️</span> Bewerken
+          </button>
+          <button onclick="closeModal('viewModal')" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white py-3 rounded-xl font-bold text-sm transition active:scale-95 shadow">
+            Klaar
+          </button>
+        </div>
+        <button onclick="deleteCurrentCard()" class="w-full py-2 text-xs font-semibold text-red-500 hover:text-red-700 transition">
+          🗑️ Kaart Verwijderen
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- Modal: Kaart Toevoegen Wizard (Stap 1 & Stap 2) -->
+  <!-- Modal: Kaart Toevoegen / Bewerken Wizard -->
   <div id="addModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 hidden z-40 overflow-y-auto" onclick="closeModalOnBgClick(event)">
     <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-5 sm:p-6 flex flex-col gap-4 text-white shadow-2xl my-auto max-h-[92vh] overflow-y-auto">
       
@@ -108,7 +121,7 @@
 
       <!-- STAP 1: CODE & NAAM -->
       <div id="wizardStep1" class="flex flex-col gap-4">
-        <!-- Scanner -->
+        <!-- Scanner Container -->
         <div id="scanner-container" class="hidden overflow-hidden rounded-2xl bg-black border-2 border-blue-500 relative">
           <div id="reader" style="width: 100%; min-height: 180px;"></div>
         </div>
@@ -173,11 +186,11 @@
           </div>
         </div>
 
-        <!-- Optie B: Foto van Fysieke Kaart Trekken -->
+        <!-- Optie B: Foto van Fysieke Kaart -->
         <div class="flex flex-col gap-2 border-t border-slate-800 pt-3">
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">2. Foto van Fysieke Kaart</label>
           <button onclick="document.getElementById('cardPhotoInput').click()" type="button" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2">
-            📸 Neem Foto / Kies Afbeelding
+            📸 Neem Foto van Kaart
           </button>
           <input type="file" id="cardPhotoInput" accept="image/*" capture="environment" class="hidden" onchange="handleCardPhotoUpload(this)">
         </div>
@@ -185,15 +198,15 @@
         <!-- Optie C: Kleur & Initialen -->
         <div class="flex flex-col gap-2 border-t border-slate-800 pt-3">
           <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">3. Of kies Kleur & Initialen</label>
-          <div class="flex gap-2 overflow-x-auto py-1">
-            <button type="button" onclick="selectColorTile('#2563eb')" class="w-8 h-8 rounded-full bg-blue-600 flex-shrink-0 border-2 border-white"></button>
-            <button type="button" onclick="selectColorTile('#16a34a')" class="w-8 h-8 rounded-full bg-green-600 flex-shrink-0 border border-slate-700"></button>
-            <button type="button" onclick="selectColorTile('#dc2626')" class="w-8 h-8 rounded-full bg-red-600 flex-shrink-0 border border-slate-700"></button>
-            <button type="button" onclick="selectColorTile('#ea580c')" class="w-8 h-8 rounded-full bg-orange-600 flex-shrink-0 border border-slate-700"></button>
-            <button type="button" onclick="selectColorTile('#9333ea')" class="w-8 h-8 rounded-full bg-purple-600 flex-shrink-0 border border-slate-700"></button>
-            <button type="button" onclick="selectColorTile('#0d9488')" class="w-8 h-8 rounded-full bg-teal-600 flex-shrink-0 border border-slate-700"></button>
-            <button type="button" onclick="selectColorTile('#e11d48')" class="w-8 h-8 rounded-full bg-rose-600 flex-shrink-0 border border-slate-700"></button>
-            <button type="button" onclick="selectColorTile('#334155')" class="w-8 h-8 rounded-full bg-slate-700 flex-shrink-0 border border-slate-700"></button>
+          <div id="colorSwatches" class="flex gap-2 overflow-x-auto py-1.5 px-0.5">
+            <button type="button" onclick="selectColorTile('#2563eb', this)" class="color-btn w-8 h-8 rounded-full bg-blue-600 flex-shrink-0 border-2 border-white ring-2 ring-blue-400"></button>
+            <button type="button" onclick="selectColorTile('#16a34a', this)" class="color-btn w-8 h-8 rounded-full bg-green-600 flex-shrink-0 border border-slate-700"></button>
+            <button type="button" onclick="selectColorTile('#dc2626', this)" class="color-btn w-8 h-8 rounded-full bg-red-600 flex-shrink-0 border border-slate-700"></button>
+            <button type="button" onclick="selectColorTile('#ea580c', this)" class="color-btn w-8 h-8 rounded-full bg-orange-600 flex-shrink-0 border border-slate-700"></button>
+            <button type="button" onclick="selectColorTile('#9333ea', this)" class="color-btn w-8 h-8 rounded-full bg-purple-600 flex-shrink-0 border border-slate-700"></button>
+            <button type="button" onclick="selectColorTile('#0d9488', this)" class="color-btn w-8 h-8 rounded-full bg-teal-600 flex-shrink-0 border border-slate-700"></button>
+            <button type="button" onclick="selectColorTile('#e11d48', this)" class="color-btn w-8 h-8 rounded-full bg-rose-600 flex-shrink-0 border border-slate-700"></button>
+            <button type="button" onclick="selectColorTile('#334155', this)" class="color-btn w-8 h-8 rounded-full bg-slate-700 flex-shrink-0 border border-slate-700"></button>
           </div>
         </div>
 
@@ -216,13 +229,16 @@
     let isProcessingScan = false;
     let isCameraBusy = false;
 
-    // Temporary storage voor de wizard
+    let activeViewingIndex = null; // Houdt bij welke kaart momenteel geopend is
+    let editingIndex = null;        // null bij nieuwe kaart, getal bij bewerken
+
+    // Tijdelijke wizard data
     let tempCardData = {
       name: '',
       code: '',
       type: 'BARCODE',
-      iconType: 'COLOR', // 'IMAGE' of 'COLOR'
-      iconData: '#2563eb' // URL/Base64 of Kleurcode
+      iconType: 'COLOR',
+      iconData: '#2563eb'
     };
 
     // --- Tab Management ---
@@ -248,6 +264,7 @@
     }
 
     function getInitials(name) {
+      if (!name) return '';
       const parts = name.trim().split(/\s+/);
       if (parts.length >= 2) {
         return (parts[0][0] + parts[1][0]).toUpperCase();
@@ -255,7 +272,7 @@
       return name.slice(0, 2).toUpperCase();
     }
 
-    // --- Render Cards (Altijd 2 kolommen naast elkaar) ---
+    // --- Render Cards (Zonder kruisjes) ---
     function renderCards() {
       const container = document.getElementById('cardList');
       const query = document.getElementById('searchInput').value.toLowerCase().trim();
@@ -266,7 +283,6 @@
       );
 
       if (currentTab === 'favorites') {
-        // Alleen kaarten die minimaal 1x geopend zijn, gesorteerd op openCount, MAXIMAAL 6
         filtered = filtered
           .filter(c => (c.openCount || 0) > 0)
           .sort((a, b) => (b.openCount || 0) - (a.openCount || 0))
@@ -289,25 +305,23 @@
       filtered.forEach((card) => {
         const origIndex = cards.findIndex(c => c.name === card.name && c.code === card.code);
         const item = document.createElement('div');
-        item.className = 'flex flex-col items-center group relative cursor-pointer';
+        item.className = 'flex flex-col items-center cursor-pointer active:scale-95 transition-transform';
+        item.onclick = () => showCard(origIndex);
 
-        // Bepaal tegel-weergave (Afbeelding vs Kleur + Initialen)
         let tileInner = '';
         if (card.iconType === 'IMAGE' && card.iconData) {
           tileInner = `<img src="${card.iconData}" class="w-full h-full object-contain p-2 bg-white" onerror="this.parentElement.style.backgroundColor='#2563eb'; this.parentElement.innerHTML='<span class=\'font-bold text-2xl text-white\'>${getInitials(card.name)}</span>'">`;
         } else {
-          const bgColor = card.iconData || '#2563eb';
           tileInner = `<span class="font-bold text-2xl text-white">${getInitials(card.name)}</span>`;
         }
 
         item.innerHTML = `
-          <div onclick="showCard(${origIndex})" class="w-full aspect-square bg-slate-900 border border-slate-800 rounded-3xl flex items-center justify-center overflow-hidden shadow-md active:scale-95 transition-transform" style="${card.iconType !== 'IMAGE' ? `background-color: ${card.iconData || '#2563eb'}` : ''}">
+          <div class="w-full aspect-square bg-slate-900 border border-slate-800 rounded-3xl flex items-center justify-center overflow-hidden shadow-md" style="${card.iconType !== 'IMAGE' ? `background-color: ${card.iconData || '#2563eb'}` : ''}">
             ${tileInner}
           </div>
-          <div onclick="showCard(${origIndex})" class="w-full mt-2 text-center">
+          <div class="w-full mt-2 text-center">
             <h3 class="font-bold text-sm text-white truncate px-1">${card.name}</h3>
           </div>
-          <button onclick="deleteCard(${origIndex})" class="absolute top-1.5 right-1.5 w-7 h-7 bg-slate-950/70 hover:bg-red-600 backdrop-blur rounded-full text-slate-400 hover:text-white flex items-center justify-center text-xs transition">✕</button>
         `;
         container.appendChild(item);
       });
@@ -315,9 +329,9 @@
 
     // --- Show Card ---
     function showCard(index) {
+      activeViewingIndex = index;
       const card = cards[index];
       
-      // Update teller op achtergrond (niet zichtbaar voor gebruiker)
       card.openCount = (card.openCount || 0) + 1;
       localStorage.setItem('cards', JSON.stringify(cards));
 
@@ -326,6 +340,7 @@
       
       const logoWrapper = document.getElementById('viewLogoWrapper');
       if (card.iconType === 'IMAGE' && card.iconData) {
+        logoWrapper.style.backgroundColor = '#ffffff';
         logoWrapper.innerHTML = `<img src="${card.iconData}" class="w-full h-full object-contain bg-white p-0.5">`;
       } else {
         logoWrapper.style.backgroundColor = card.iconData || '#2563eb';
@@ -364,8 +379,46 @@
       document.getElementById('viewModal').classList.remove('hidden');
     }
 
+    // --- Verwijderen en Bewerken vanuit View Modal ---
+    function deleteCurrentCard() {
+      if (activeViewingIndex === null) return;
+      const card = cards[activeViewingIndex];
+      if (confirm(`Weet je zeker dat je "${card.name}" wilt verwijderen?`)) {
+        cards.splice(activeViewingIndex, 1);
+        localStorage.setItem('cards', JSON.stringify(cards));
+        closeModal('viewModal');
+        renderCards();
+      }
+    }
+
+    function editCurrentCard() {
+      if (activeViewingIndex === null) return;
+      const card = cards[activeViewingIndex];
+      editingIndex = activeViewingIndex;
+
+      closeModal('viewModal');
+
+      // Vul wizard met bestaande gegevens
+      document.getElementById('cardName').value = card.name;
+      document.getElementById('cardNumber').value = card.code;
+      document.getElementById('duplicateAlert').classList.add('hidden');
+      setType(card.type || 'BARCODE');
+
+      tempCardData = {
+        name: card.name,
+        code: card.code,
+        type: card.type || 'BARCODE',
+        iconType: card.iconType || 'COLOR',
+        iconData: card.iconData || '#2563eb'
+      };
+
+      goToStep1();
+      document.getElementById('addModal').classList.remove('hidden');
+    }
+
     // --- Wizard Flow ---
     function openAddModal() {
+      editingIndex = null;
       document.getElementById('cardName').value = '';
       document.getElementById('cardNumber').value = '';
       document.getElementById('duplicateAlert').classList.add('hidden');
@@ -375,7 +428,7 @@
     }
 
     function goToStep1() {
-      document.getElementById('wizardTitle').innerText = 'Stap 1: Scan & Geef Naam';
+      document.getElementById('wizardTitle').innerText = editingIndex !== null ? 'Kaart Bewerken' : 'Stap 1: Scan & Geef Naam';
       document.getElementById('wizardStep1').classList.remove('hidden');
       document.getElementById('wizardStep2').classList.add('hidden');
     }
@@ -388,10 +441,17 @@
         alert('Vul zowel een winkelnaam als een code in.');
         return;
       }
+      // Voeg dit toe onderaan in de goToStep2() functie:
+      const activeColor = tempCardData.iconData || '#2563eb';
+      document.querySelectorAll('#colorSwatches .color-btn').forEach(btn => {
+        const isMatch = btn.getAttribute('onclick')?.includes(activeColor);
+        btn.className = `color-btn w-8 h-8 rounded-full flex-shrink-0 ${btn.classList.toString().match(/bg-[a-z]+-[0-9]+/)?.[0] || ''} ` + 
+          (isMatch ? 'border-2 border-white ring-2 ring-blue-400' : 'border border-slate-700');
+      });
 
-      // Check duplicaten
-      const existingNameIndex = cards.findIndex(c => c.name.toLowerCase() === name.toLowerCase());
-      const existingCodeIndex = cards.findIndex(c => c.code.toLowerCase() === code.toLowerCase());
+      // Duplicaatcontrole (uitsluiten van de kaart die we zelf bewerken)
+      const existingNameIndex = cards.findIndex((c, idx) => idx !== editingIndex && c.name.toLowerCase() === name.toLowerCase());
+      const existingCodeIndex = cards.findIndex((c, idx) => idx !== editingIndex && c.code.toLowerCase() === code.toLowerCase());
 
       if (existingNameIndex !== -1 || existingCodeIndex !== -1) {
         const targetIndex = existingNameIndex !== -1 ? existingNameIndex : existingCodeIndex;
@@ -415,10 +475,11 @@
       tempCardData.name = name;
       tempCardData.code = code;
       tempCardData.type = currentSelectedType;
-      tempCardData.iconType = 'COLOR';
-      tempCardData.iconData = '#2563eb';
+      if (!tempCardData.iconData) {
+        tempCardData.iconType = 'COLOR';
+        tempCardData.iconData = '#2563eb';
+      }
 
-      // UI Initialiseren voor stap 2
       document.getElementById('wizardTitle').innerText = 'Stap 2: Kies Icoon of Kleur';
       document.getElementById('wizardStep1').classList.add('hidden');
       document.getElementById('wizardStep2').classList.remove('hidden');
@@ -439,13 +500,22 @@
       }
     }
 
-    function selectColorTile(hex) {
+    function selectColorTile(hex, clickedBtn) {
       tempCardData.iconType = 'COLOR';
       tempCardData.iconData = hex;
+
+      // Update visuele selectiecirkel op de knoppen
+      document.querySelectorAll('#colorSwatches .color-btn').forEach(btn => {
+        btn.className = btn.className.replace(/border-2 border-white ring-2 ring-blue-400/g, 'border border-slate-700');
+      });
+
+      if (clickedBtn) {
+        clickedBtn.className = clickedBtn.className.replace('border border-slate-700', 'border-2 border-white ring-2 ring-blue-400');
+      }
+
       updateTilePreview();
     }
 
-    // Zoekt logo's via open APIs (Wikipedia & Clearbit/Google)
     async function searchWebLogos() {
       const query = document.getElementById('logoSearchQuery').value.trim() || tempCardData.name;
       const resultsContainer = document.getElementById('onlineLogoResults');
@@ -475,7 +545,6 @@
       });
     }
 
-    // Comprimeer en converteer geüploade foto naar Base64
     function handleCardPhotoUpload(input) {
       if (!input.files || input.files.length === 0) return;
       const file = input.files[0];
@@ -505,14 +574,20 @@
     }
 
     function saveFinalCard() {
-      cards.push({
+      const cardPayload = {
         name: tempCardData.name,
         code: tempCardData.code,
         type: tempCardData.type,
         iconType: tempCardData.iconType,
         iconData: tempCardData.iconData,
-        openCount: 0
-      });
+        openCount: editingIndex !== null ? (cards[editingIndex].openCount || 0) : 0
+      };
+
+      if (editingIndex !== null) {
+        cards[editingIndex] = cardPayload;
+      } else {
+        cards.push(cardPayload);
+      }
 
       localStorage.setItem('cards', JSON.stringify(cards));
       renderCards();
@@ -530,14 +605,6 @@
       } else {
         bBtn.className = 'py-2 rounded-xl text-xs font-bold border border-blue-500 bg-blue-600 text-white transition';
         qBtn.className = 'py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-800 text-slate-400 transition';
-      }
-    }
-
-    function deleteCard(index) {
-      if (confirm(`Verwijder "${cards[index].name}"?`)) {
-        cards.splice(index, 1);
-        localStorage.setItem('cards', JSON.stringify(cards));
-        renderCards();
       }
     }
 
