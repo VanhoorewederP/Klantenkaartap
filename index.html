@@ -3,11 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Mijn Klantenkaarten</title>
+  <title>Mijn Kaarten</title>
+  
+  <!-- Manifest voor Android installatie -->
   <link rel="manifest" href="manifest.json">
+  
+  <!-- Android & Chrome configuratie -->
   <meta name="theme-color" content="#090d16">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <!-- iOS / Apple Safari configuratie (verwijdert adresbalk) -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Kaarten">
+  <link rel="apple-touch-icon" href="icon-512.png">
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
